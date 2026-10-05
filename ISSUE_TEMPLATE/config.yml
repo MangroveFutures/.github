@@ -1,0 +1,9 @@
+# Org-wide issue forms (source: MangroveFutures/home/org-dotgithub; copied to .github automatically).
+blank_issues_enabled: true
+contact_links:
+  - name: The org handbook
+    url: https://github.com/MangroveFutures/home
+    about: Where decisions, the repo map and the working agreement live.
+  - name: The roadmap (org Project)
+    url: https://github.com/orgs/MangroveFutures/projects/2
+    about: Every open piece of work across all repos.

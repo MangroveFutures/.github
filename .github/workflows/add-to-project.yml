@@ -1,0 +1,24 @@
+# Reusable workflow: adds a repo's new issues and pull requests to the org Project.
+# Source: MangroveFutures/home/org-dotgithub (ORG-0001). Each repo calls it with a few lines:
+#
+#   on:
+#     issues: {types: [opened, reopened, transferred]}
+#     pull_request: {types: [opened, reopened]}
+#   jobs:
+#     add:
+#       uses: MangroveFutures/.github/.github/workflows/add-to-project.yml@main
+#       secrets: inherit
+name: Add to org Project
+on:
+  workflow_call:
+    secrets:
+      ADD_TO_PROJECT_TOKEN:
+        required: true
+jobs:
+  add:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v1.0.2
+        with:
+          project-url: https://github.com/orgs/MangroveFutures/projects/2
+          github-token: ${{ secrets.ADD_TO_PROJECT_TOKEN }}

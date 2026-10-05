@@ -1,0 +1,20 @@
+name: Bug
+description: Something is broken or behaves wrongly.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what should have happened
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to see it
+      description: Steps, a link, or the exact command and its output.
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency
+      options: ["today", "this-week", "later"]

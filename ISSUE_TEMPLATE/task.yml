@@ -1,0 +1,34 @@
+name: Task
+description: A piece of work with a clear outcome.
+labels: []
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What and why
+      description: What needs doing, and why it matters now. A few sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done means
+      description: How anyone can tell it is finished (acceptance criteria).
+    validations:
+      required: true
+  - type: dropdown
+    id: project
+    attributes:
+      label: Project
+      options: ["epoch platform", "Supabase & data", "org & GitHub", "PSR & front ends", "Mindsweeper", "research", "agents", "client & third-party"]
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency
+      options: ["today", "this-week", "later"]
+  - type: checkboxes
+    id: rosie
+    attributes:
+      label: Needs Rosie?
+      options:
+        - label: Only Rosie can do or decide part of this (add the needs-rosie label and a plate spinning room card)

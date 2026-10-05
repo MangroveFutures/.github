@@ -1,0 +1,35 @@
+name: Decision needed
+description: A choice someone has to make, with the options laid out.
+labels: ["decision"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: The question
+      description: One sentence. What exactly is being decided?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What led here; links to the issues, decisions or conversations involved.
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Options
+      description: Two or three options, each with what it means, for and against. Mark the recommended one and say why.
+    validations:
+      required: true
+  - type: input
+    id: by
+    attributes:
+      label: Decide by
+      description: A date (YYYY-MM-DD) or "no deadline".
+  - type: dropdown
+    id: project
+    attributes:
+      label: Project
+      options: ["epoch platform", "Supabase & data", "org & GitHub", "PSR & front ends", "Mindsweeper", "research", "agents", "client & third-party"]
