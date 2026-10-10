@@ -1,0 +1,60 @@
+# Issue form: Bet. Source: MangroveFutures/home org-dotgithub (ORG-0006). RFC-0005 §10.1 as a form,
+# and the record of one PDSA cycle when labelled `pdsa`. Also the SPEC that scripts/check_issue.py
+# reads: each `label` is a `### ` heading, `required: true` is required.
+name: Bet
+description: A shaped piece of work with an appetite and a circuit breaker (also used for a PDSA cycle).
+labels: ["bet"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is wrong or missing, and why now.
+    validations:
+      required: true
+  - type: textarea
+    id: appetite
+    attributes:
+      label: Appetite
+      description: What this is worth (not an estimate), and the circuit-breaker date.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution outline
+      description: Rough; enough to see the direction.
+    validations:
+      required: true
+  - type: textarea
+    id: rabbit_holes
+    attributes:
+      label: Rabbit holes
+      description: The places this could swallow time, and how to avoid them.
+    validations:
+      required: true
+  - type: textarea
+    id: scope_out
+    attributes:
+      label: No-gos
+      description: What this deliberately does not do.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context and links
+      description: Pointers, not copies, each with a one-line summary. At least one link is required.
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done means
+    validations:
+      required: true
+  - type: textarea
+    id: predictions
+    attributes:
+      label: Predictions and measures
+      description: Required when the issue is labelled `pdsa`. Each prediction with its measure, written before the cycle starts.

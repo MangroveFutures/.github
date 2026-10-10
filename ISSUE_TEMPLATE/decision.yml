@@ -1,3 +1,6 @@
+# Issue form: Decision. Source: MangroveFutures/home org-dotgithub (ORG-0006). Follows MADR's
+# required sections so the answer converts into an ADR or ORG record. Also the SPEC that
+# scripts/check_issue.py reads: each `label` is a `### ` heading, `required: true` is required.
 name: Decision needed
 description: A choice someone has to make, with the options laid out.
 labels: ["decision"]
@@ -12,24 +15,36 @@ body:
   - type: textarea
     id: context
     attributes:
-      label: Context
-      description: What led here; links to the issues, decisions or conversations involved.
+      label: Context and links
+      description: What led here. Pointers, not copies, each with a one-line summary. At least one link is required.
     validations:
       required: true
+  - type: textarea
+    id: drivers
+    attributes:
+      label: What matters in choosing
+      description: The decision drivers.
   - type: textarea
     id: options
     attributes:
       label: Options
-      description: Two or three options, each with what it means, for and against. Mark the recommended one and say why.
+      description: Each option with its pros and cons. Mark the recommended one and say why.
+    validations:
+      required: true
+  - type: textarea
+    id: blocked
+    attributes:
+      label: What is blocked on this
+      description: What cannot go ahead until this is decided. "Nothing yet" is a valid answer.
     validations:
       required: true
   - type: input
     id: by
     attributes:
       label: Decide by
-      description: A date (YYYY-MM-DD) or "no deadline".
-  - type: dropdown
-    id: project
+      description: A date (for example 31 Oct 2026) or "no deadline".
+  - type: textarea
+    id: outcome
     attributes:
-      label: Project
-      options: ["epoch platform", "Supabase & data", "org & GitHub", "PSR & front ends", "Mindsweeper", "research", "agents", "client & third-party"]
+      label: Decision outcome
+      description: Leave empty until decided; then link the ADR or ORG record.

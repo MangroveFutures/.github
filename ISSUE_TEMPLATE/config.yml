@@ -1,4 +1,6 @@
 # Org-wide issue forms (source: MangroveFutures/home/org-dotgithub; copied to .github automatically).
+# Blank issues stay allowed on purpose: capture is cheap and ungated (ORG-0006, RFC-0005 §2). A blank
+# capture should carry the `needs-grooming` (or `spike`) label; the forms are for groomed work.
 blank_issues_enabled: true
 contact_links:
   - name: The org handbook

@@ -1,18 +1,52 @@
+# Issue form: Bug. Source: MangroveFutures/home org-dotgithub (ORG-0006). Also the SPEC that
+# scripts/check_issue.py reads: each `label` is a `### ` heading, `required: true` is required.
 name: Bug
 description: Something is broken or behaves wrongly.
 labels: ["bug"]
 body:
   - type: textarea
-    id: what
+    id: actual
     attributes:
-      label: What happened, and what should have happened
+      label: What happened
+      description: What you saw. Paste the error or output if there is one.
     validations:
       required: true
   - type: textarea
-    id: steps
+    id: expected
+    attributes:
+      label: What should have happened
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
     attributes:
       label: How to see it
-      description: Steps, a link, or the exact command and its output.
+      description: Steps, the exact command and its output, or a link.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context and links
+      description: Pointers, not copies, each with a one-line summary. At least one link is required.
+      placeholder: |
+        - The component, ADR or doc involved
+        - Related issues or PRs (#123)
+        - Logs or the run where it happened
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done means
+      description: Normally a failing test that now passes.
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: Where to look
+      description: Files, directories, scripts, logs.
   - type: dropdown
     id: urgency
     attributes:

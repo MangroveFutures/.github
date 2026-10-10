@@ -1,21 +1,71 @@
+# Issue form: Task. Source: MangroveFutures/home org-dotgithub (ORG-0006); copied to every repo's
+# defaults by sync-dotgithub.yml. This file is also the SPEC that scripts/check_issue.py reads: each
+# field's `label` is the `### ` heading the checker looks for, and `required: true` is what it
+# requires. Renaming a label changes the standard for every issue; do it in a PR that says so.
 name: Task
 description: A piece of work with a clear outcome.
 labels: []
 body:
+  - type: markdown
+    attributes:
+      value: |
+        A ready task passes one test: a background agent with no extra context could pick it up and do it
+        (ORG-0006). Just capturing an idea? Use a blank issue and add the `needs-grooming` label instead.
   - type: textarea
-    id: what
+    id: problem
     attributes:
       label: What and why
       description: What needs doing, and why it matters now. A few sentences.
     validations:
       required: true
   - type: textarea
+    id: context
+    attributes:
+      label: Context and links
+      description: >-
+        Pointers, not copies, each with a one-line summary beside it. At least one link is required.
+      placeholder: |
+        - The product, PRD or spec this belongs to
+        - The ADR or ORG decision it relies on
+        - The parent epic and related issues (#123, owner/repo#45)
+        - The conversation it came from
+    validations:
+      required: true
+  - type: textarea
     id: done
     attributes:
       label: Done means
-      description: How anyone can tell it is finished (acceptance criteria).
+      description: >-
+        Acceptance criteria: how anyone can tell it is finished. EARS or Gherkin recommended
+        (https://github.com/MangroveFutures/epoch/blob/main/docs/runbooks/writing-acceptance-criteria.md).
     validations:
       required: true
+  - type: textarea
+    id: verify
+    attributes:
+      label: How to check it
+      description: A command, a test or a screenshot. "Rosie looks at it" is allowed if you say so.
+    validations:
+      required: true
+  - type: textarea
+    id: scope_out
+    attributes:
+      label: Out of scope
+      description: What this does not attempt. "Nothing excluded" is a valid answer; empty is not.
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: Where to look
+      description: Files, directories, scripts.
+  - type: textarea
+    id: adr
+    attributes:
+      label: Decision records this relies on
+      description: >-
+        Required by the checker when "Where to look" touches migrations/, models.py or dependencies
+        (RFC-0005 §4).
   - type: dropdown
     id: project
     attributes:

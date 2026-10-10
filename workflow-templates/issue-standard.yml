@@ -1,0 +1,28 @@
+# Checks every issue in this repo against the org work-item standard (MangroveFutures/home ORG-0006).
+# The logic lives once, in MangroveFutures/.github; this file only calls it.
+name: Issue standard
+on:
+  issues:
+    types: [opened, edited, labeled, reopened]
+  schedule:
+    - cron: "17 6 * * *" # daily sweep of open issues labelled `ready`
+  workflow_dispatch:
+    inputs:
+      sweep-scope:
+        description: "Which open issues to check: ready (labelled ready) or all."
+        type: choice
+        options: [ready, all]
+        default: ready
+permissions:
+  issues: write
+concurrency:
+  group: issue-standard-${{ github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+jobs:
+  check:
+    uses: MangroveFutures/.github/.github/workflows/issue-standard.yml@main
+    with:
+      # shadow = comment only. ORG-0006: switch to enforce only after graduation (10+ runs, Rosie's
+      # spot-check, a record in docs/learnings.md).
+      ready-gate: shadow
+      sweep-scope: ${{ inputs.sweep-scope || 'ready' }}

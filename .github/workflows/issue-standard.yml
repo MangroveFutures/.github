@@ -1,0 +1,66 @@
+# Reusable workflow: checks every issue against the ORG-0006 work-item standard.
+# Source: MangroveFutures/home (ORG-0006); copied to MangroveFutures/.github by sync-dotgithub.yml.
+# The checker (scripts/check_issue.py) and the spec (ISSUE_TEMPLATE/*.yml) are read from
+# MangroveFutures/.github, which is public, so a private repo's GITHUB_TOKEN can fetch them.
+#
+# What it does: a failing issue gets `needs-grooming` and ONE comment listing exactly what is missing
+# (edited in place, never duplicated). It never closes an issue.
+#
+# ready-gate: shadow (the default) only reports: on a failing issue labelled `ready` it says it WOULD
+# have removed `ready`. ready-gate: enforce removes `ready`, with the reason. ORG-0006 says the check
+# starts in shadow mode and graduates to enforce only after at least 10 runs, Rosie's spot-check and a
+# record in docs/learnings.md (RFC-0005 §6). Do not set enforce in a caller before that graduation.
+#
+# Each repo calls it with a few lines (the starter is workflow-templates/issue-standard.yml):
+#
+#   on:
+#     issues: {types: [opened, edited, labeled, reopened]}
+#     schedule: [{cron: "17 6 * * *"}]
+#     workflow_dispatch:
+#   permissions:
+#     issues: write
+#   jobs:
+#     check:
+#       uses: MangroveFutures/.github/.github/workflows/issue-standard.yml@main
+name: Issue standard (ORG-0006)
+on:
+  workflow_call:
+    inputs:
+      ready-gate:
+        description: "shadow (comment only; the default until ORG-0006 graduation) or enforce (remove `ready` from a failing issue)."
+        type: string
+        default: shadow
+      sweep-scope:
+        description: "On a scheduled or manual run: ready (open issues labelled ready) or all."
+        type: string
+        default: ready
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    timeout-minutes: 10
+    steps:
+      - name: Fetch the checker and the issue forms
+        uses: actions/checkout@v4
+        with:
+          repository: MangroveFutures/.github
+          ref: main
+          path: .issue-standard
+          persist-credentials: false
+          sparse-checkout: |
+            scripts
+            ISSUE_TEMPLATE
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install PyYAML
+        run: python -m pip install --quiet "pyyaml==6.0.2"
+      - name: Check the issue (or sweep)
+        # The issue body is read from the event file by Python, never interpolated into a script.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          READY_GATE: ${{ inputs.ready-gate }}
+          SWEEP_SCOPE: ${{ inputs.sweep-scope }}
+          FORMS_DIR: .issue-standard/ISSUE_TEMPLATE
+        run: python .issue-standard/scripts/issue_standard_action.py

@@ -1,0 +1,5 @@
+{
+  "name": "Issue standard (ORG-0006)",
+  "description": "Checks every issue against the org work-item standard; labels and comments on failures. Starts in shadow mode (comment only); removes `ready` only once graduated to enforce.",
+  "categories": ["Automation"]
+}
