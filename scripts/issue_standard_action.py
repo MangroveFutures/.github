@@ -12,6 +12,10 @@ It never closes an issue. What it does, and nothing else:
 - An issue now passes: update the comment to say so, and remove `needs-grooming` only if this
   workflow added it (a person's `needs-grooming` is left alone).
 - Issues labelled `spike` are discovery work and are not checked until they are labelled `ready`.
+- Issues a person labelled `needs-grooming` are captures and are not checked until they are labelled
+  `ready` either (Rosie, 11 Oct 2026: every capture was emailing her a "does not meet the standard"
+  comment). A `needs-grooming` this workflow added itself is still followed up, so the comment can
+  say when the issue passes.
 
 Environment (set by the workflow): GITHUB_TOKEN, GITHUB_REPOSITORY, GITHUB_EVENT_NAME,
 GITHUB_EVENT_PATH, GITHUB_API_URL; READY_GATE (shadow|enforce, default shadow); SWEEP_SCOPE
@@ -64,6 +68,10 @@ def plan(
     out = Plan()
     if names & DISCOVERY_LABELS and not is_ready:
         out.summary = "skipped: discovery work (spike), not checked until labelled ready"
+        return out
+    person_capture = NEEDS_GROOMING in names and ADDED_MARKER not in (existing_comment or "")
+    if person_capture and not is_ready:
+        out.summary = "skipped: capture (needs-grooming), not checked until labelled ready"
         return out
 
     failing = result.checked and not result.ok
