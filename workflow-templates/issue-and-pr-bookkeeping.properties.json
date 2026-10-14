@@ -1,0 +1,5 @@
+{
+  "name": "Issue and PR bookkeeping (ORG-0001, ORG-0006)",
+  "description": "One job per issue or pull request event: adds it to the org Project and checks issues against the org work-item standard (shadow mode until ORG-0006 graduation).",
+  "categories": ["Automation"]
+}

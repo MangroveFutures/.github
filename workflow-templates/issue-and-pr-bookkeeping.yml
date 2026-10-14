@@ -1,0 +1,38 @@
+# Issue and PR bookkeeping: adds every new issue and pull request to the org Project (ORG-0001) and
+# checks every issue against the org work-item standard (ORG-0006), as ONE job per event.
+# Use this instead of separate add-to-project and issue-standard callers: two workflows billed two job
+# minutes for one opened issue. The logic lives once, in MangroveFutures/.github; this file only calls it.
+name: Issue and PR bookkeeping
+on:
+  issues:
+    types: [opened, edited, labeled, reopened, transferred]
+  pull_request:
+    types: [opened, reopened]
+  schedule:
+    - cron: "17 6 * * *" # daily sweep of open issues labelled `ready`
+  workflow_dispatch:
+    inputs:
+      sweep-scope:
+        description: "Which open issues to check: ready (labelled ready) or all."
+        type: choice
+        options: [ready, all]
+        default: ready
+permissions:
+  issues: write
+# One run at a time per issue or pull request, so the issue-standard comment is edited in place rather
+# than posted twice. Not cancel-in-progress: a bookkeeping run cut off half way could leave a label
+# added and its comment missing. (Issue and pull request numbers share one sequence, so they never clash.)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: false
+jobs:
+  bookkeeping:
+    uses: MangroveFutures/.github/.github/workflows/issue-and-pr-bookkeeping.yml@main
+    # Only the one secret the shared workflow needs, never `inherit` (Feynman F5, home #260).
+    secrets:
+      ADD_TO_PROJECT_TOKEN: ${{ secrets.ADD_TO_PROJECT_TOKEN }}
+    with:
+      # shadow = comment only. ORG-0006: switch to enforce only after graduation (10+ runs, Rosie's
+      # spot-check, a record in docs/learnings.md).
+      ready-gate: shadow
+      sweep-scope: ${{ inputs.sweep-scope || 'ready' }}

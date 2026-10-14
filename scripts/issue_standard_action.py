@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """GitHub Action driver for the ORG-0006 issue standard. Runs scripts/check_issue.py on issues.
 
-Called by the reusable workflow MangroveFutures/.github/.github/workflows/issue-standard.yml.
+Called by the reusable workflows MangroveFutures/.github/.github/workflows/issue-standard.yml and
+issue-and-pr-bookkeeping.yml (the same check, sharing one job with the org Project add).
 It never closes an issue. What it does, and nothing else:
 
 - An issue fails the check: add `needs-grooming` and post ONE comment saying exactly what is

@@ -1,0 +1,100 @@
+# Not yet in MangroveFutures/.github: the sync is blocked by the PR-required rule (home #266).
+# Reusable workflow: the per-event bookkeeping for issues and pull requests, in ONE job.
+# Source: MangroveFutures/home/org-dotgithub (ORG-0001); copied to MangroveFutures/.github by
+# sync-dotgithub.yml. It does the work of add-to-project.yml and issue-standard.yml (both still here,
+# unchanged, for repos that call them), as steps of a single job.
+#
+# Why one job: GitHub bills every job at a whole minute at least, and both checks take seconds. With
+# two workflows, one issue being opened started two jobs and billed two minutes; now it bills one
+# (Rosie, 14 Oct 2026, after the org's 3,000 included Actions minutes ran out).
+#
+# What each step does is unchanged:
+# - Add to org Project: adds the issue or pull request to https://github.com/orgs/MangroveFutures/projects/2.
+#   It runs on every issue and pull request event this workflow gets, not only "opened". Adding an
+#   item that is already in the Project changes nothing. This is on purpose: the caller serialises
+#   runs per issue (see its `concurrency`), and GitHub drops a queued run when a newer one queues for
+#   the same issue. An issue opened with two labels fires `opened` then `labeled` twice, so the
+#   `opened` run can be the one dropped; adding on every event means the item is added anyway.
+# - Issue standard (ORG-0006): the same checker, spec and inputs as issue-standard.yml. It runs on
+#   `issues` events, the daily schedule and a manual run, never on pull requests.
+#
+# Each repo calls it with a few lines (the starter is workflow-templates/issue-and-pr-bookkeeping.yml):
+#
+#   on:
+#     issues: {types: [opened, edited, labeled, reopened, transferred]}
+#     pull_request: {types: [opened, reopened]}
+#     schedule: [{cron: "17 6 * * *"}]
+#     workflow_dispatch:
+#   permissions:
+#     issues: write
+#   jobs:
+#     bookkeeping:
+#       uses: MangroveFutures/.github/.github/workflows/issue-and-pr-bookkeeping.yml@main
+#       secrets:
+#         ADD_TO_PROJECT_TOKEN: ${{ secrets.ADD_TO_PROJECT_TOKEN }}
+name: Issue and PR bookkeeping
+on:
+  workflow_call:
+    inputs:
+      ready-gate:
+        description: "Issue standard: shadow (comment only; the default until ORG-0006 graduation) or enforce (remove `ready` from a failing issue)."
+        type: string
+        default: shadow
+      sweep-scope:
+        description: "Issue standard, on a scheduled or manual run: ready (open issues labelled ready) or all."
+        type: string
+        default: ready
+    secrets:
+      ADD_TO_PROJECT_TOKEN:
+        required: true
+jobs:
+  bookkeeping:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    timeout-minutes: 10
+    env:
+      # Which steps this event needs. Worked out once here so every step's `if:` reads the same way.
+      ADD_TO_PROJECT: ${{ github.event_name == 'issues' || github.event_name == 'pull_request' }}
+      CHECK_ISSUE: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'issues' && github.event.action != 'transferred') }}
+    steps:
+      # First, so the org token (ADD_TO_PROJECT_TOKEN) is used before any other code runs in this job:
+      # the checker steps below fetch and run a script and install a package (Feynman F5, home #260).
+      # Pinned to a commit SHA, as GitHub's security hardening guide recommends; the tag is in the
+      # comment (checked 14 Oct 2026: refs/tags/v1.0.2 is this commit).
+      - name: Add to org Project
+        if: env.ADD_TO_PROJECT == 'true'
+        uses: actions/add-to-project@244f685bbc3b7adfa8466e08b698b5577571133e # v1.0.2
+        with:
+          project-url: https://github.com/orgs/MangroveFutures/projects/2
+          github-token: ${{ secrets.ADD_TO_PROJECT_TOKEN }}
+
+      # The checker steps run even when the Project add failed (`!cancelled()`), so one step failing
+      # never stops the other. Either failing still turns the job red, as two jobs did before.
+      - name: Fetch the issue-standard checker and the issue forms
+        if: ${{ !cancelled() && env.CHECK_ISSUE == 'true' }}
+        uses: actions/checkout@v4
+        with:
+          repository: MangroveFutures/.github
+          ref: main
+          path: .issue-standard
+          persist-credentials: false
+          sparse-checkout: |
+            scripts
+            ISSUE_TEMPLATE
+      - if: ${{ !cancelled() && env.CHECK_ISSUE == 'true' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install PyYAML
+        if: ${{ !cancelled() && env.CHECK_ISSUE == 'true' }}
+        run: python -m pip install --quiet "pyyaml==6.0.2"
+      - name: Check the issue against ORG-0006 (or sweep)
+        if: ${{ !cancelled() && env.CHECK_ISSUE == 'true' }}
+        # The issue body is read from the event file by Python, never interpolated into a script.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          READY_GATE: ${{ inputs.ready-gate }}
+          SWEEP_SCOPE: ${{ inputs.sweep-scope }}
+          FORMS_DIR: .issue-standard/ISSUE_TEMPLATE
+        run: python .issue-standard/scripts/issue_standard_action.py
