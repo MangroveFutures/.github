@@ -15,7 +15,8 @@ https://code.claude.com/docs/en/hooks):
   method `create`, or method `update` adding the `ready` label.
 
 What it allows without checking: an issue labelled `needs-grooming` or `spike` (capture stays free,
-ORG-0006), and `gh issue create --web` (the browser shows the form).
+ORG-0006; a `needs-grooming` capture missing Source, origin with a date, or a Parent gets a warning
+in `additionalContext`, never a block), and `gh issue create --web` (the browser shows the form).
 
 How it answers: nothing (exit 0) to allow; a JSON `permissionDecision: "deny"` with the reason to
 block; `"ask"` when it cannot see the body (for example an edit adding `ready` when the issue
@@ -42,6 +43,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import capture_check  # noqa: E402  (standard library only, so capture advice works without PyYAML)
+
 IMPORT_ERROR: Exception | None = None
 try:
     import check_issue  # noqa: E402  (needs PyYAML; if missing, only gated calls are denied)
@@ -92,10 +95,24 @@ def ask(reason: str) -> dict:
                                    "permissionDecisionReason": reason}}
 
 
+def advise(text: str) -> dict:
+    """Advice added to an allowed call. No permissionDecision, so the normal permission flow runs."""
+    return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": text}}
+
+
+def capture_advice(body: str, names: set[str]) -> dict | None:
+    """Shadow mode (like ORG-0006's graduation): tell an agent what its `needs-grooming` capture is
+    missing, never stop it. A `spike` is discovery work, not a capture, so it gets no advice."""
+    if "needs-grooming" not in names:
+        return None
+    gaps = capture_check.capture_gaps(body)
+    return advise(capture_check.warning_text(gaps)) if gaps else None
+
+
 def verdict_for(body: str, labels: list[str], issue_type: str | None, forms, *, promoting: bool = False) -> dict | None:
     names = {label.casefold() for label in labels}
     if not promoting and names & CAPTURE_LABELS and READY not in names:
-        return None  # capture: allowed as it is
+        return capture_advice(body, names)  # capture: always allowed; at most advice
     require_checker(forms)
     result = check_issue.check(body, labels, issue_type, forms)
     if result.ok:
@@ -288,7 +305,7 @@ def gh_issue_create(args, cwd, placeholders, stdin_docs, forms):
     elif "file" in opts:
         body = read_file(resolve(opts["file"][-1], placeholders), cwd, stdin_docs)
     elif {l.casefold() for l in labels} & CAPTURE_LABELS:
-        return None
+        return capture_advice("", {l.casefold() for l in labels})
     else:
         raise Unseen("no --body or --body-file was given")
     issue_type = opts.get("type", [None])[-1]

@@ -41,6 +41,8 @@ from pathlib import Path
 
 import yaml
 
+from capture_check import CAPTURE_TEMPLATE, capture_gaps  # noqa: F401  (re-exported for tests and callers)
+
 NO_RESPONSE = "_no response_"
 SKIPPED_ISSUE_TYPES = {"epic"}
 ISSUE_TYPE_TO_FORM = {"bug": "bug"}
@@ -141,10 +143,16 @@ class Result:
         }
 
 
+# Files in the forms folder that are not part of the standard. `config` is GitHub's chooser settings.
+# `capture` is the free-capture form (home #426): it adds the `needs-grooming` label, so reading it as a
+# standard would make choose_form() match every needs-grooming issue to it and stop checking groomed ones.
+NOT_STANDARDS = {"config", "capture"}
+
+
 def load_forms(forms_dir: Path) -> dict[str, Form]:
     forms: dict[str, Form] = {}
     for path in sorted(forms_dir.glob("*.y*ml")):
-        if path.stem == "config":
+        if path.stem in NOT_STANDARDS:
             continue
         data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
         fields = []

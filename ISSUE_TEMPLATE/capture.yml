@@ -1,0 +1,62 @@
+# Issue form: Capture. Source: MangroveFutures/home org-dotgithub (ORG-0006); copied to every repo's
+# defaults by sync-dotgithub.yml. This is NOT a standard. scripts/check_issue.py skips it (see
+# NOT_STANDARDS there), because the label below would otherwise make the checker treat every
+# `needs-grooming` issue as a capture and stop checking groomed ones.
+# Purpose (Rosie, 19 Oct 2026, home #426): context should arrive at capture, so grooming does not have
+# to rewrite the issue. What, Why, Source and Where it came from are required here (the form covers
+# people in the web UI). A blank issue is still allowed (config.yml), because ORG-0006 says a bare capture
+# is free; the form is the paved road, not a gate. Limit: GitHub forms render only in the web UI. Agents
+# that create an issue through the API, `gh` or the MCP tool never see this form, so the real upstream fix
+# is on the agent path: scripts/issue_hook.py warns when an agent's needs-grooming capture lacks Source,
+# a dated origin or a Parent line, and prints the template. An experiment, not a final rule.
+name: Capture
+description: A thought, problem or idea that is not yet ready work. Doug grooms it later.
+labels: ["needs-grooming"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A capture is cheap on purpose. Fill in what you know, skip what you do not. What, Why, Source and
+        Where it came from are needed so grooming does not have to rediscover them; write "unknown" under
+        Source if you truly cannot say.
+        Ready work uses the Task, Bug, Decision or Bet form instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What
+      description: One or two sentences. What is going on, or what should exist?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it matters
+      description: What goes wrong, or what is gained?
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Source
+      description: >-
+        Links, file paths, issue numbers, conversation turn ids. Pointers, not copies, with a few words
+        beside each. Do not paste conversation turns.
+    validations:
+      required: true
+  - type: textarea
+    id: origin
+    attributes:
+      label: Where it came from
+      description: Which agent or person, which session or review, and the date (absolute, for example 19 Oct 2026).
+    validations:
+      required: true
+  - type: textarea
+    id: parent
+    attributes:
+      label: Parent epic or decision
+      description: The epic or decision this belongs under, if you know it (#123, owner/repo#45). Helps grooming link it.
+  - type: textarea
+    id: next
+    attributes:
+      label: Suggested next step
+      description: What you would do next, and who. A guess is fine.
