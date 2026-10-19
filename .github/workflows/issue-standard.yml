@@ -14,13 +14,14 @@
 # Each repo calls it with a few lines (the starter is workflow-templates/issue-standard.yml):
 #
 #   on:
-#     issues: {types: [opened, edited, labeled, reopened]}
+#     issues: {types: [opened, labeled, reopened]}   # `edited` left out on purpose (home #490)
 #     schedule: [{cron: "17 6 * * *"}]
 #     workflow_dispatch:
 #   permissions:
 #     issues: write
 #   jobs:
 #     check:
+#       if: github.event_name != 'issues' || github.event.action != 'labeled' || github.event.label.name == 'ready'
 #       uses: MangroveFutures/.github/.github/workflows/issue-standard.yml@main
 name: Issue standard (ORG-0006)
 on:
