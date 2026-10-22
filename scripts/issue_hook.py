@@ -169,7 +169,7 @@ def promote_check(repo: str | None, number: str, cwd: str | None, forms, body: s
     except Unseen as exc:
         if body is None:
             return ask(f"This adds the `ready` label to #{number}, but {exc}, so the ORG-0006 hook cannot "
-                       "check it. Adding `ready` says the Definition of Ready is met (RFC-0005 §3); confirm it is, and that any item needing Rosie's yes has `approved`.")
+                       "check it. Adding `ready` says the Definition of Ready is met (RFC-0005 §3); confirm it is, that the item is on an approved plan, and that any item needing Rosie's yes has `approved` (ORG-0018).")
         issue = {}
     labels = [l["name"] for l in issue.get("labels", [])] + list(extra_labels or []) + [READY]
     issue_type = (issue.get("type") or {}).get("name")
