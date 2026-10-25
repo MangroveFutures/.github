@@ -1,0 +1,12 @@
+# Turns on auto-merge for document pull requests and Dependabot patch updates, once checks are required.
+# The logic lives once, in MangroveFutures/.github; this file only calls it (ORG-0023).
+name: Auto-merge
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review, unlabeled]
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  auto-merge:
+    uses: MangroveFutures/.github/.github/workflows/auto-merge.yml@main

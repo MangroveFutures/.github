@@ -1,0 +1,5 @@
+{
+  "name": "Auto-merge (ORG-0023)",
+  "description": "Turns on auto-merge for document pull requests and Dependabot patch updates, decided from the file list. Does nothing unless the base branch has a required status check.",
+  "categories": ["Automation"]
+}

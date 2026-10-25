@@ -1,0 +1,66 @@
+# Reusable workflow: switches on auto-merge (squash) for pull requests that qualify by their file list.
+# Source: MangroveFutures/home (ORG-0005 section 1, ORG-0023); copied to MangroveFutures/.github
+# by sync-dotgithub.yml. The rule is computed by scripts/auto_merge_decide.py, read from the public
+# MangroveFutures/.github repo. Runbook, failure modes and rollback: handbook/reference/auto-merge.md.
+#
+# Two routes, both only when the base branch has a required status check:
+#   documents        every changed file is a document path (docs, handbook, research, agent memory);
+#   dependabot-patch dependabot[bot], every update is a semver patch, files are manifests and lockfiles.
+# Anything else is left alone. The pull request itself is never checked out or run: the workflow reads
+# the file list through the API, which is what makes `pull_request_target` safe here.
+#
+# Caller (the starter is workflow-templates/auto-merge.yml):
+#
+#   on:
+#     pull_request_target:
+#       types: [opened, synchronize, reopened, ready_for_review, unlabeled]
+#   permissions: {contents: write, pull-requests: write}
+#   jobs:
+#     auto-merge:
+#       uses: MangroveFutures/.github/.github/workflows/auto-merge.yml@main
+name: Auto-merge (ORG-0023)
+on:
+  workflow_call:
+jobs:
+  decide:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    concurrency:
+      group: auto-merge-${{ github.repository }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Fetch the decision script (never the pull request)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: MangroveFutures/.github
+          ref: main
+          path: .auto-merge
+          persist-credentials: false
+          sparse-checkout: scripts
+      - name: Dependabot metadata
+        id: meta
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
+        uses: dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a # v2.5.0
+        with:
+          github-token: ${{ github.token }}
+      - name: Decide
+        id: decide
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          UPDATES_JSON: ${{ steps.meta.outputs.updated-dependencies-json }}
+        run: python3 .auto-merge/scripts/auto_merge_decide.py
+      - name: Turn on auto-merge (squash)
+        if: steps.decide.outputs.merge == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ steps.decide.outputs.number }}
+        run: gh pr merge "$PR" --auto --squash --repo "$GITHUB_REPOSITORY"
+      - name: Turn auto-merge off again (the pull request no longer qualifies)
+        if: steps.decide.outputs.disable == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ steps.decide.outputs.number }}
+        run: gh pr merge "$PR" --disable-auto --repo "$GITHUB_REPOSITORY"
