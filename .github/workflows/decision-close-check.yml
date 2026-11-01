@@ -1,0 +1,41 @@
+# Reusable workflow: when an issue labelled `decision` is closed, check that it names its next action
+# (a linked issue or pull request, or "none, because ..."). Source: MangroveFutures/home/org-dotgithub,
+# copied to MangroveFutures/.github by sync-dotgithub.yml (ORG-0001). Rosie, 1 Nov 2026.
+#
+# STAGE: shadow (comments only; never reopens or blocks). ENFORCE-BY: 15 Nov 2026 (a Sunday; the
+# weekly review on Friday 13 Nov 2026 decides). Advisory-only is a stage, not a state: if this has not
+# been moved to enforcing or deliberately extended by then, the weekly review reports it.
+#
+# A repo calls it with a few lines (starter: workflow-templates/decision-close-check.yml):
+#
+#   on:
+#     issues: {types: [closed]}
+#   permissions:
+#     issues: write
+#   jobs:
+#     check:
+#       uses: MangroveFutures/.github/.github/workflows/decision-close-check.yml@main
+name: decision-close-check
+on:
+  workflow_call:
+permissions:
+  issues: write
+jobs:
+  check:
+    if: contains(github.event.issue.labels.*.name, 'decision') && github.event.issue.state_reason != 'not_planned'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const number = context.payload.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: number, per_page: 100 });
+            const text = [context.payload.issue.body || '', ...comments.map(c => c.body || '')].join('\n');
+            const ok = /next action[^\n]{0,200}?(#\d+|[\w.-]+\/[\w.-]+#\d+|none,\s*because)/i.test(text);
+            if (!ok) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: number, body:
+                'Closed without a next action. A decision is finished when something follows from it. ' +
+                'Add a line `Next action: #123` (the issue or pull request that carries it out) or `Next action: none, because ...`. ' +
+                '(Shadow check, comment only; to be enforced from 15 Nov 2026 unless the weekly review extends it.)' });
+            }
