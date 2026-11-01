@@ -56,6 +56,11 @@ body:
       label: Parent epic or decision
       description: The epic or decision this belongs under, if you know it (#123, owner/repo#45). Helps grooming link it.
   - type: textarea
+    id: premise
+    attributes:
+      label: Premise check
+      description: Optional at capture; Doug fills it when grooming. Kind (task, decision, principle, question, idea for an existing epic); where it sits (epic, horizon); whether it fits or challenges what is planned; the established way others solve it; alternatives. See the grooming skill, step 4a.
+  - type: textarea
     id: next
     attributes:
       label: Suggested next step
