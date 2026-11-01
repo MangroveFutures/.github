@@ -48,3 +48,8 @@ body:
     attributes:
       label: Decision outcome
       description: Leave empty until decided; then link the ADR or ORG record.
+  - type: textarea
+    id: next_action
+    attributes:
+      label: Next action when decided
+      description: Fill when the decision is made, and before closing. Link the issue or pull request that carries it out, or write "none, because ..." with the reason. A decision with no next action is not finished (a check comments when one is closed without it).
