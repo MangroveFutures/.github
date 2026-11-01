@@ -7,10 +7,12 @@
 # fix below: false alarm when the link is in the body (#996), "none, because" (#997), not-planned close
 # (#998), link given in a later comment (#999); a missed alarm when a decision is reopened and closed
 # again (#1000: the check's own example line counted as a next action; fixed by ignoring its own comment).
-# STAGE: shadow (comments only; never reopens or blocks).
-# PROMOTE to enforcing (reopen with a comment) WHEN: five real decision closes have gone through with no
-# false alarm. NOT a calendar date. It is checked by the decision-flow monitor, not by a weekly review.
-# ROLL BACK: delete the caller file, or revert the pull request. Nothing else depends on this.
+# STAGE: ENFORCING since 1 Nov 2026 (Rosie: push ahead; the five scenarios above had passed). When a
+# decision is closed without a next action, the check comments and reopens the issue; adding the
+# `Next action:` line and closing again passes. Not-planned closes are exempt.
+# WATCH: false alarms (a valid next action that was missed) and run errors, read from the workflow runs.
+# ROLL BACK: delete the caller file, or revert the pull request (reopened issues can be closed again).
+# Nothing else depends on this.
 #
 # A repo calls it with a few lines (starter: workflow-templates/decision-close-check.yml):
 #
@@ -42,7 +44,7 @@ jobs:
             const ok = /next action[^\n]{0,200}?(#\d+|[\w.-]+\/[\w.-]+#\d+|none,\s*because)/i.test(text);
             if (!ok) {
               await github.rest.issues.createComment({ owner, repo, issue_number: number, body:
-                'Closed without a next action. A decision is finished when something follows from it. ' +
-                'Add a line `Next action: #123` (the issue or pull request that carries it out) or `Next action: none, because ...`. ' +
-                '(Shadow check, comment only; becomes enforcing after five real closes with no false alarm.)' });
+                'Closed without a next action, so this decision is reopened. A decision is finished when something follows from it. ' +
+                'Add a line `Next action: #123` (the issue or pull request that carries it out) or `Next action: none, because ...`, then close it again.' });
+              await github.rest.issues.update({ owner, repo, issue_number: number, state: 'open' });
             }
