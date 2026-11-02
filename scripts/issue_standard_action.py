@@ -13,6 +13,8 @@ It never closes an issue. What it does, and nothing else:
 - An issue now passes: update the comment to say so, and remove `needs-grooming` only if this
   workflow added it (a person's `needs-grooming` is left alone).
 - Issues labelled `spike` are discovery work and are not checked until they are labelled `ready`.
+- Issues labelled `reading` are things an agent made for Rosie to read, not tasks, and are not checked until they are
+  labelled `ready` (home #174: nine reading items were each flagged and emailed on 12 Oct 2026).
 - Issues a person labelled `needs-grooming` are captures and are not checked until they are labelled
   `ready` either (Rosie, 11 Oct 2026: every capture was emailing her a "does not meet the standard"
   comment). A `needs-grooming` this workflow added itself is still followed up, so the comment can
@@ -43,6 +45,7 @@ BOT_LOGIN = "github-actions[bot]"
 NEEDS_GROOMING = "needs-grooming"
 READY = "ready"
 DISCOVERY_LABELS = {"spike"}
+READING_LABEL = "reading"  # something an agent made for Rosie to read (home #174): not a task
 STANDARD_LINK = (
     "https://github.com/MangroveFutures/home/blob/main/decisions/"
     "ORG-0006-work-items-one-standard-enforced-and-pdsa.md"
@@ -69,6 +72,9 @@ def plan(
     out = Plan()
     if names & DISCOVERY_LABELS and not is_ready:
         out.summary = "skipped: discovery work (spike), not checked until labelled ready"
+        return out
+    if READING_LABEL in names and not is_ready:
+        out.summary = "skipped: reading item (reading), not checked until labelled ready"
         return out
     person_capture = NEEDS_GROOMING in names and ADDED_MARKER not in (existing_comment or "")
     if person_capture and not is_ready:
