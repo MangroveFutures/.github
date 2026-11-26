@@ -58,3 +58,20 @@ body:
     attributes:
       label: Predictions and measures
       description: Required when the issue is labelled `pdsa`. Each prediction with its measure, written before the cycle starts.
+  - type: textarea
+    id: prd
+    attributes:
+      label: PRD or spec
+      description: >-
+        Link the one-page PRD or spec this bet builds (for example docs/spec/<name>.md), or write
+        "PRD: none needed: <reason>". Required by the checker before `ready` (ORG-0036).
+  - type: input
+    id: next
+    attributes:
+      label: Next
+      description: >-
+        What happens next, one of: now | scheduled YYYY-MM-DD because <reason> | trigger
+        <issue-closed|pr-merged|label|rosie-replied> <arg> | blocked <owner/repo#N>. Required before
+        `ready`; the dispatcher starts the owner (agent:<name> label) when it comes
+        (handbook/reference/next-field.md).
+      placeholder: now

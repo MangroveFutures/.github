@@ -43,6 +43,21 @@ body:
     attributes:
       label: Decide by
       description: A date (for example 31 Oct 2026) or "no deadline".
+  - type: dropdown
+    id: why_hers
+    attributes:
+      label: why_hers
+      description: >-
+        Why is this Rosie's to decide? Pick the one ORG-0028 reason, or "none: the owner decides". The plate (handbook/reference/the-plate.md)
+        shows her only items with a reason; an item with none goes to its owner agent. Optional for now (22 Nov 2026), proposed required
+        for `needs-rosie` items once the plate has run for a week.
+      options:
+        - changes_agreed_concept
+        - cannot_be_undone
+        - spends_beyond_budget
+        - needs_her_secret_or_login
+        - her_own_action
+        - "none: the owner decides"
   - type: textarea
     id: outcome
     attributes:

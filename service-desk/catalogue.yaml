@@ -1,0 +1,68 @@
+# The service desk catalogue: the ONE list of request types (epoch RFC-0035; epoch#2245; Codd's draft ADR-0100, epoch PR 2252).
+# Phase 1 (Rosie, 23 Nov 2026: "move to it asap"): the GitHub issue form org-dotgithub/ISSUE_TEMPLATE/request.yml is GENERATED
+# from this file by scripts/build_service_desk_form.py; never edit the form by hand. Phase 2 (a database schema) imports this
+# file as seed rows, and starts on a trigger, not a date (see the ADR). A request type is a form plus a route (Jira Service
+# Management's "request type"; Backstage's idea that a form is generated from a declared type). ITIL 4 words only where they
+# fit: `spend` and `access` are catalogue items; `proposal` follows RFC then ADR; `feedback` follows a kaizen suggestion system.
+# Limit: no SLAs, tiers or portal; submitter and fulfiller are often the same agent.
+version: 1
+updated: 2026-11-23
+owner: doug
+design_owner: codd
+common_labels: [request]
+triage_target: "an agent that runs looks within a day; the weekly report lists any request untriaged for more than a day"
+types:
+  - id: proposal
+    title: Proposal
+    description: An RFC, an ADR, or a change to how we work.
+    standard: "RFC then ADR (Rust RFCs; MADR)"
+    triage_owner: doug
+    consult: [codd, baye]
+    needs_rosie: "to accept"
+    extra_fields:
+      - {id: outcome_wanted, label: What decision or change you want, required: true}
+  - id: spend
+    title: Spend
+    description: Budget, credit, a paid tool.
+    standard: "ITIL 4 request catalogue item"
+    triage_owner: lynn
+    consult: [yad, bill]
+    needs_rosie: "always (red tier)"
+    extra_fields:
+      - {id: cost, label: "Cost (amount, one-off or per month, and the vendor)", required: true}
+      - {id: saving, label: "What it saves or earns (one line)", required: true}
+  - id: access
+    title: Access
+    description: A permission, token, role, connector or tool.
+    standard: "ITIL 4 request catalogue item"
+    triage_owner: baye
+    consult: [grace]
+    needs_rosie: "for secrets, org-wide permissions and anything outward"
+    extra_fields:
+      - {id: scope, label: "Exact scope wanted and for how long", required: true}
+  - id: work
+    title: New work
+    description: New work to be done, of any kind (writing, research, client, build).
+    standard: "Backlog and grooming (ORG-0006, ORG-0036)"
+    triage_owner: doug
+    consult: []
+    needs_rosie: "only if red tier"
+    extra_fields: []
+  - id: feedback
+    title: Feedback
+    description: A critique of someone's work or of the system, or any suggestion.
+    standard: "Kaizen suggestion system (teian)"
+    triage_owner: seddon
+    consult: [feynman]
+    needs_rosie: "no"
+    extra_fields:
+      - {id: about, label: "What it is about (a link to the work or the part of the system)", required: true}
+# Phase 1 exists to learn. The seven things to record (Codd, epoch#2245), each with how it is read.
+phase1_record:
+  - {id: api_fields, question: "Do issues filed through the API carry the form's fields?", read_by: "weekly report, sample of API-filed requests"}
+  - {id: unused_fields, question: "Which form fields are left empty or filled with filler?", read_by: "weekly report"}
+  - {id: misroutes, question: "How many requests were moved to a different type or owner at triage?", read_by: "triage owner notes the change in a comment"}
+  - {id: time_to_triage, question: "Time from filing to first triage comment, per type.", read_by: "weekly report"}
+  - {id: not_software, question: "Share of requests that are not about software.", read_by: "weekly report; the phase 2 trigger reads it"}
+  - {id: duplicates, question: "How many were duplicates of an open request or issue?", read_by: "triage owner labels duplicate"}
+  - {id: github_could_not_hold, question: "What the request needed that a GitHub issue could not hold (a status, a spend line, a link between requests).", read_by: "free text kept by Doug; the phase 2 design reads it"}
