@@ -16,6 +16,10 @@ Three rules cannot be written in GitHub's form schema, so they live here, and on
    ``migrations/``, ``models.py`` or a dependency file (epoch RFC-0005 §4), unless the body already
    cites a decision record (``ADR-0038``, ``ORG-0006``, ``RFC-0005``) somewhere else.
 3. Bet: "Predictions and measures" is required when the issue is labelled ``pdsa`` (ORG-0006).
+4. Task and bet labelled ``ready``: the body links a PRD or spec (a ``docs/spec/...`` path, or a link
+   whose text or address says PRD or spec) or says ``PRD: none needed: <reason>`` (ORG-0036, home#1501).
+5. Task and bet labelled ``ready``: the body has one valid ``next:`` line or "Next" section
+   (``scripts/next_field.py``; handbook/reference/next-field.md; home#1518), so the dispatcher can act on it.
 
 Which form applies, in order: a ``<!-- form: NAME -->`` marker in the body; a label a form adds
 (``bug``, ``decision``, ``bet``); the GitHub issue type ``Epic`` means "not checked" (ORG-0006 has no
@@ -41,6 +45,7 @@ from pathlib import Path
 
 import yaml
 
+import next_field
 from capture_check import CAPTURE_TEMPLATE, capture_gaps  # noqa: F401  (re-exported for tests and callers)
 
 NO_RESPONSE = "_no response_"
@@ -63,6 +68,15 @@ LINK = re.compile(
     r"|(?<![\w/])[\w.-]+/[\w.-]+#\d+"  # owner/repo#12
     r"|(?<![\w&/])#\d+\b)",  # #12 (GitHub autolinks it)
 )
+PRD_LINK = re.compile(  # a spec path (docs/spec/x.md, docs/programme/spec/feature-x.md), a PRD or spec link, or "PRD: <ref>"
+    r"(?:^|[\s(`/])docs/(?:[\w.-]+/)*spec/[\w./-]+\.md"
+    r"|\[[^\]]*\b(?:PRD|spec)\b[^\]]*\]\([^)]+\)"
+    r"|https?://\S*/(?:spec|specs|prd)(?:/|-|\.)\S*"
+    r"|^\s*PRD:\s*(?!none needed)(?:[\w.-]+/[\w.-]+|[\w.-]+)?#\d+"
+    r"|^\s*PRD:\s*https?://\S+",
+    re.IGNORECASE | re.MULTILINE,
+)
+PRD_NONE = re.compile(r"PRD:[ \t]*none needed:[ \t]*(\S+(?:[ \t]+\S+){2,})", re.IGNORECASE)
 DECISION_REF = re.compile(r"\b(ADR|ORG|RFC)-?\s?\d{3,4}\b", re.IGNORECASE)
 MARKER = re.compile(r"<!--\s*form:\s*([\w-]+)\s*-->", re.IGNORECASE)
 HEADING = re.compile(r"^ {0,3}(#{1,3})\s+(.*?)\s*#*\s*$")
@@ -146,7 +160,7 @@ class Result:
 # Files in the forms folder that are not part of the standard. `config` is GitHub's chooser settings.
 # `capture` is the free-capture form (home #426): it adds the `needs-grooming` label, so reading it as a
 # standard would make choose_form() match every needs-grooming issue to it and stop checking groomed ones.
-NOT_STANDARDS = {"config", "capture"}
+NOT_STANDARDS = {"config", "capture", "request"}
 
 
 def load_forms(forms_dir: Path) -> dict[str, Form]:
@@ -323,6 +337,18 @@ def check(
                     "each with a one-line summary beside it.",
                 )
             )
+    if name in ("task", "bet") and "ready" in lowered_labels:
+        clean = COMMENT.sub("", body or "")
+        if not (PRD_LINK.search(clean) or PRD_NONE.search(clean)):
+            result.problems.append(Problem(
+                "PRD or spec", "missing before `ready` (ORG-0036).",
+                "Link the PRD or spec (for example docs/spec/<name>.md), or write `PRD: none needed: <reason>`."))
+        nxt = next_field.parse(body or "")
+        if not nxt.ok:
+            result.problems.append(Problem(
+                "Next", f"{nxt.error} (needed before `ready`, home#1518).",
+                "Add one line: `next: now`, `next: scheduled YYYY-MM-DD because <reason>`, "
+                "`next: trigger <issue-closed|pr-merged|label|rosie-replied> <arg>` or `next: blocked <owner/repo#N>`."))
     return result
 
 
