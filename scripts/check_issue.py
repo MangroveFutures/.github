@@ -76,6 +76,7 @@ PRD_LINK = re.compile(  # a spec path (docs/spec/x.md, docs/programme/spec/featu
     r"|^\s*PRD:\s*https?://\S+",
     re.IGNORECASE | re.MULTILINE,
 )
+ECRS_LINE = re.compile(r"^\s*ECRS:\s*(eliminate|combine\s+\S*#\d+|keep:\s*\S+)", re.IGNORECASE | re.MULTILINE)  # ORG-0052; warn-only
 PRD_NONE = re.compile(r"PRD:[ \t]*none needed:[ \t]*(\S+(?:[ \t]+\S+){2,})", re.IGNORECASE)
 DECISION_REF = re.compile(r"\b(ADR|ORG|RFC)-?\s?\d{3,4}\b", re.IGNORECASE)
 MARKER = re.compile(r"<!--\s*form:\s*([\w-]+)\s*-->", re.IGNORECASE)
@@ -128,6 +129,7 @@ class Result:
     form: str | None
     how_found: str
     problems: list[Problem] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)  # advisory; never fails the check
 
     @property
     def checked(self) -> bool:
@@ -140,8 +142,9 @@ class Result:
     def report(self) -> str:
         if not self.checked:
             return f"Not checked: {self.how_found}."
+        warn = "".join("\nWarning: " + w for w in self.warnings)
         if self.ok:
-            return f"Meets the {self.form} standard ({self.how_found})."
+            return f"Meets the {self.form} standard ({self.how_found})." + warn
         lines = [f"Does not meet the {self.form} standard ({self.how_found}). Missing or empty:"]
         lines += [f"- {p.text()}" for p in self.problems]
         lines.append(SKILL_HINT)
@@ -154,6 +157,7 @@ class Result:
             "checked": self.checked,
             "ok": self.ok,
             "problems": [p.__dict__ for p in self.problems],
+            "warnings": list(self.warnings),
         }
 
 
@@ -349,6 +353,10 @@ def check(
                 "Next", f"{nxt.error} (needed before `ready`, home#1518).",
                 "Add one line: `next: now`, `next: scheduled YYYY-MM-DD because <reason>`, "
                 "`next: trigger <issue-closed|pr-merged|label|rosie-replied> <arg>` or `next: blocked <owner/repo#N>`."))
+        if not ECRS_LINE.search(clean):
+            result.warnings.append(
+                "no `ECRS:` line (warn-only, ORG-0052). Add `ECRS: eliminate | combine #N | keep: <owner>` "
+                "under What and why, after the grooming skill's step 2a.")
     return result
 
 
